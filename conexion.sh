@@ -32,4 +32,5 @@ fecha=`date`
 if test $ok -ne 1
 then
 	echo "$fecha : REBOOT" >> $FLOG
+	reboot
 fi
