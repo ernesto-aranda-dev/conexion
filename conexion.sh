@@ -1,13 +1,14 @@
 #!/bin/bash
-# Autor: Ernesto Aranda
-# Script para comprobar la conexión a internet y en caso de fallo reiniciar el equipo.
-# Este script se ha de incluir en cron para que se ejecute periódicamente.
-# NOTA: Hay que crear el directorio $MISLOGS en /var/log con sudo.
+#Incluir en crontab:
+#0,20,40 * * * * /home/pi/Bash/conexion.sh
 
-MISLOGS="ernie"
 URL1="www.google.com"
 URL2="www.yahoo.com"
-FLOG="/var/log/$MISLOGS/reboots.log"
+MISLOGS=ernie
+FLOG=/var/log/$MISLOGS/reboots.log
+MAILSH=/home/pi/Bash/mail.sh
+MD=/opt/sensors/config.json
+CTL=`grep email /opt/sensors/config.json | cut -d "\"" -f 4 | cut -d "@" -f 1`
 
 if test ! -f $FLOG
 then
@@ -16,21 +17,22 @@ then
 fi
 
 function hayconexion () {
-	ping -c 1 $1 | grep -c "0% packet loss"
+ping -c 1 $1 | grep -c "0% packet loss"
 }
 
-#Comprueba URL1
+#URL1
 ok=`hayconexion $URL1`
 if test $ok -ne 1
 then
-	#Comprueba URL2
-	sleep 10
+	#URL2
+	sleep 300
 	ok=`hayconexion $URL2`
 fi
-
 fecha=`date`
 if test $ok -ne 1
 then
 	echo "$fecha : REBOOT" >> $FLOG
-	reboot
+	$MAILSH "earanda@coit.es" "NO CONECTA" "$CTL: No se consigue conectar"
+	#reboot
 fi
+
